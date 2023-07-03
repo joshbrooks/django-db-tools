@@ -84,36 +84,33 @@ class PgContainerSettings:
         container.exec_run(f"mkdir -p {dst_dir}")
         print(f"Putting archive from {source_dir} to {dst_dir}")
         container.put_archive(dst_dir, stream.getvalue())
-
-    def restore(self):
+    
+    def _restore_cmds(self):
         preamble = f"psql --user {self.user} -d postgres -c"
         preamble_db = f"psql --user {self.user} -d {self.database} -c"
+
+        yield f"""{preamble} "DROP DATABASE {self.database}" """
+        yield f"""{preamble} "CREATE DATABASE {self.database}" """
+    
+        if self.database == 'partisipa_db':
+            # For Partisipa only: Create metabase group and iampartisipa
+            yield from (
+                f"""{preamble_db} "DROP ROLE IF EXISTS metabase_group" """,
+                f"""{preamble_db} "DROP ROLE IF EXISTS metabase" """,
+                f"""{preamble_db} "DROP ROLE IF EXISTS partisipa" """,
+                f"""{preamble_db} "DROP ROLE IF EXISTS iampartisipa" """,
+                f"""{preamble_db} "CREATE ROLE metabase_group" """,
+                f"""{preamble_db} "CREATE ROLE metabase" """,
+                f"""{preamble_db} "CREATE ROLE iampartisipa" """,
+                f"""{preamble_db} "CREATE ROLE partisipa" """,
+            )
+        
+        yield f"pg_restore --user {self.user} /source/pg_dump_out -d {self.database}"
+
+    def restore(self):
         exitcode = 0
-        commands = {
-            "Terminate connections": " ".join(
-                [
-                    preamble,
-                    "SELECT pg_terminate_backend(pid)",
-                    "FROM pg_stat_activity",
-                    f"WHERE datname ='{self.database}'",
-                ]
-            ),
-            "Drop db": f"""{preamble} "DROP DATABASE {self.database}" """,
-            "Create db": f"""{preamble} "CREATE DATABASE {self.database}" """,
-            # For Partisipa only Create metabase group and iampartisipa
-            "Privileges": f"""{preamble_db} "DROP ROLE IF EXISTS metabase_group" """,
-            "Privileges (2)": f"""{preamble_db} "DROP ROLE IF EXISTS metabase" """,
-            "Privileges (3)": f"""{preamble_db} "DROP ROLE IF EXISTS partisipa" """,
-            "Privileges (4)": f"""{preamble_db} "DROP ROLE IF EXISTS iampartisipa" """,
-            "Privileges (5)": f"""{preamble_db} "CREATE ROLE metabase_group" """,
-            "Privileges (6)": f"""{preamble_db} "CREATE ROLE metabase" """,
-            "Privileges (7)": f"""{preamble_db} "CREATE ROLE iampartisipa" """,
-            "Privileges (8)": f"""{preamble_db} "CREATE ROLE partisipa" """,
-            "Restore db": f"pg_restore --user {self.user} /source/pg_dump_out -d {self.database}",
-        }
         container = self.get_container()
-        for name, cmd in commands.items():
-            print(name)
+        for cmd in self._restore_cmds():
             exitcode, output = container.exec_run(cmd)
             if exitcode != 0:
                 print(output)
@@ -192,11 +189,10 @@ class Config:
         """
         # Ensure backup directory parent is created
         backup = self.paths.local_backup
-        shutil.rmtree(backup)
+        shutil.rmtree(backup, ignore_errors=True)
         os.makedirs(backup.parent, exist_ok=True)
         cmd = ["--force", "--restore-as-of=now", self.paths.destination, backup]
         rdiffbackup.run.main_run(list(map(str, cmd)))
-        print(f"Restored from {self.paths.destination} to {backup}")
         return backup
 
     def rdiff_command(self, command: str) -> str:
