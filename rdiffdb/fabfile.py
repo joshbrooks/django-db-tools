@@ -14,6 +14,7 @@ from fabric import Connection
 import docker
 from docker.models.containers import Container
 
+
 container_name = "partisipa_db"
 image_name = "postgis/postgis:latest"
 
@@ -178,11 +179,11 @@ class Config:
         return rdiffbackup.run.main_run(cmd)
 
     def run_backup_db(self):
-        with self.connection() as c:
-            for command_description, command in self.backup_db():
-                yield command_description
-                result = c.run(command)
-                yield bool(result)
+        c = self.connection()
+        for command_description, command in self.backup_db():
+            yield command_description
+            result = c.run(command)
+            yield bool(result)
 
     def restore_as_of_now(self):
         """
@@ -204,49 +205,14 @@ class Config:
             "increments",
         )
 
-
-# Settings for various hosts information
-hosts: dict[str, Config] = dict(
-    dird=Config(
-        user="dird",
-        host="dird-staging.catalpa.build",
-        database="dird_db",
-    ),
-    partisipa=Config(
-        user="partisipa",
-        host="partisipa-staging.catalpa.build",
-        database="partisipa_db",
-    ),
-    partisipa_metabase=Config(
-        user="partisipa",
-        host="partisipa-staging.catalpa.build",
-        database="partisipa_metabase_db",
-    ),
-)
-
-containersettings: dict[str, PgContainerSettings] = dict(
-    partisipa=PgContainerSettings(
-        container_name="partisipa_db", user="partisipa", database="partisipa_db"
-    ),
-    partisipa_metabase=PgContainerSettings(
-        container_name="partisipa_metabase_db",
-        user="partisipa_metabase",
-        database="partisipa_metabase_db",
-        pg_port=49159,
-    ),
-)
-
-
-def remove_dir(destination: Path) -> str:
-    """
-    Drop the pg_dump_out directory, if it exists
-    """
-    return f"rm -rf {destination}"
+    def list_backups(self):
+        rdiffbackup.run.main_run(['list', 'increments', str(self.paths.destination)])
 
 
 if __name__ == "__main__":
-    config = hosts.get("partisipa_metabase")
-    containerconfig = containersettings.get("partisipa_metabase")
+    from settings import hosts, containersettings
+    config = hosts.get("partisipa")
+    containerconfig = containersettings.get("partisipa")
     # c.run_backup_db()
     # c.rdiff_backup()
     # config.restore_as_of_now()
@@ -258,7 +224,8 @@ if __name__ == "__main__":
     #     arcname = "pg_dump_out"
     # )
     # containerconfig.restore()
-    print(containerconfig.connection_url)
+    # print(containerconfig.connection_url)
+    print(config.list_backups())
 
     # make_backup(config, c)
     # restore_as_of_now(config)

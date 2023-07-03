@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import time
+from typing import Annotated
 import typer
 from settings import hosts
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -14,7 +14,7 @@ def list_hosts():
 
 
 @app.command()
-def backup_db(host: str):
+def backup_db(host: Annotated[str, typer.Option(prompt=True)]):
     h = hosts.get(host)
     if not host:
         raise KeyError("Host not found")
