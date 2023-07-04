@@ -54,9 +54,6 @@ def build_container(host: Annotated[str, typer.Option(prompt=True)]):
 
         restore = progress.add_task(description=f"Temporary restore-as-of-now from {config.paths.destination} to {config.paths.local_backup}", total=None)
         copy_to_container = progress.add_task(description=f"Build container {containerconfig.container_name}", total=None)
-
-        container_restore = progress.add_task("Wait 5 seconds then Restore the database", total=None)
-
         config.restore_as_of_now()
         progress.update(restore, completed=1)
 
@@ -66,7 +63,7 @@ def build_container(host: Annotated[str, typer.Option(prompt=True)]):
             arcname = "pg_dump_out"
         )
         progress.update(copy_to_container, completed=1)
-
+        container_restore = progress.add_task("Wait 5 seconds then Restore the database", total=None)
         time.sleep(5)
         containerconfig.restore()
         progress.update(container_restore, completed=1)

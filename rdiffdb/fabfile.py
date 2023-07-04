@@ -82,7 +82,6 @@ class PgContainerSettings:
         with tarfile.open(fileobj=stream, mode="w|") as tar:
             tar.add(source_dir, arcname=arcname)
         container.exec_run(f"mkdir -p {dst_dir}")
-        print(f"Putting archive from {source_dir} to {dst_dir}")
         container.put_archive(dst_dir, stream.getvalue())
     
     def _restore_cmds(self):
@@ -97,12 +96,10 @@ class PgContainerSettings:
             yield from (
                 f"""{preamble_db} "DROP ROLE IF EXISTS metabase_group" """,
                 f"""{preamble_db} "DROP ROLE IF EXISTS metabase" """,
-                f"""{preamble_db} "DROP ROLE IF EXISTS partisipa" """,
                 f"""{preamble_db} "DROP ROLE IF EXISTS iampartisipa" """,
                 f"""{preamble_db} "CREATE ROLE metabase_group" """,
                 f"""{preamble_db} "CREATE ROLE metabase" """,
                 f"""{preamble_db} "CREATE ROLE iampartisipa" """,
-                f"""{preamble_db} "CREATE ROLE partisipa" """,
             )
         
         yield f"pg_restore --user {self.user} /source/pg_dump_out -d {self.database}"
@@ -113,7 +110,7 @@ class PgContainerSettings:
         for cmd in self._restore_cmds():
             exitcode, output = container.exec_run(cmd)
             if exitcode != 0:
-                print(output)
+                raise RuntimeError(f"Error running {cmd}: {output}")
                 break
 
 
@@ -204,33 +201,13 @@ class Config:
     def list_backups(self):
         rdiffbackup.run.main_run(['list', 'increments', str(self.paths.destination)])
 
-
 if __name__ == "__main__":
     from settings import hosts, containersettings
-    config = hosts.get("partisipa")
-    containerconfig = containersettings.get("partisipa")
-    # c.run_backup_db()
-    # c.rdiff_backup()
-    # config.restore_as_of_now()
-
-    # container = containerconfig.get_container()
-    # containerconfig.copy_to_container(
-    #     config.paths.local_backup,
-    #     dst_dir = Path("/source/"),
-    #     arcname = "pg_dump_out"
-    # )
-    # containerconfig.restore()
-    # print(containerconfig.connection_url)
-    print(config.list_backups())
-
-    # make_backup(config, c)
-    # restore_as_of_now(config)
-    # backup_dir = restore_as_of_now()
-    # print(f"Backup created at {backup_dir}")
-
-    # container = get_or_start_container(container_name, image_name)
-
-    # if container.status in {'running', 'created'}:
-
-    #     copy_to_container(container, backup_dir)
-    #     # shutil.rmtree(backup_dir)
+    hosts['partisipa'].backup_db()
+    hosts['partisipa'].restore_as_of_now()
+    containersettings['partisipa'].copy_to_container(
+            hosts['partisipa'].paths.local_backup,
+            dst_dir = Path("/source/"),
+            arcname = "pg_dump_out"
+        )
+    containersettings['partisipa'].restore()
