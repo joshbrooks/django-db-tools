@@ -1,26 +1,30 @@
 <!--
---- Readme.md Snippet without images Start ---
+&lt;--- Readme.md Snippet without images Start ---&gt;
 ## Tech Stack
 joshbrooks/django-db-tools is built on the following main stack:
+
 - [Python](https://www.python.org) – Languages
 
 Full tech stack [here](/techstack.md)
---- Readme.md Snippet without images End ---
 
---- Readme.md Snippet with images Start ---
+&lt;--- Readme.md Snippet without images End ---&gt;
+
+&lt;--- Readme.md Snippet with images Start ---&gt;
 ## Tech Stack
 joshbrooks/django-db-tools is built on the following main stack:
+
 - <img width='25' height='25' src='https://img.stackshare.io/service/993/pUBY5pVj.png' alt='Python'/> [Python](https://www.python.org) – Languages
 
 Full tech stack [here](/techstack.md)
---- Readme.md Snippet with images End ---
+
+&lt;--- Readme.md Snippet with images End ---&gt;
 -->
 <div align="center">
 
 # Tech Stack File
 ![](https://img.stackshare.io/repo.svg "repo") [joshbrooks/django-db-tools](https://github.com/joshbrooks/django-db-tools)![](https://img.stackshare.io/public_badge.svg "public")
 <br/><br/>
-|6<br/>Tools used|11/09/23 <br/>Report generated|
+|6<br/>Tools used|01/04/24 <br/>Report generated|
 |------|------|
 </div>
 
@@ -65,11 +69,11 @@ Full tech stack [here](/techstack.md)
 
 |NAME|VERSION|LAST UPDATED|LAST UPDATED BY|LICENSE|VULNERABILITIES|
 |:------|:------|:------|:------|:------|:------|
-|[decorator](https://pypi.org/decorator)|v5.1.1|07/03/23|Josh Brooks |BSD-2-Clause|N/A|
-|[docker](https://pypi.org/docker)|v6.1.2|07/03/23|Josh Brooks |Apache-2.0|N/A|
-|[mypy](https://pypi.org/mypy)|v1.3.0|07/03/23|Josh Brooks |MIT|N/A|
+|[decorator](https://pypi.org/project/decorator)|v5.1.1|07/03/23|Josh Brooks |BSD-2-Clause|N/A|
+|[docker](https://pypi.org/project/docker)|v6.1.2|07/03/23|Josh Brooks |Apache-2.0|N/A|
+|[mypy](https://pypi.org/project/mypy)|v1.3.0|07/03/23|Josh Brooks |MIT|N/A|
 
 <br/>
 <div align='center'>
 
-Generated via [Stack File](https://github.com/apps/stack-file)
+Generated via [Stack File](https://github.com/marketplace/stack-file)
